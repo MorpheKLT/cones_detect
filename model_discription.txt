@@ -1,0 +1,33 @@
+wydl@wydl-asus:~/Projects/src/cones_detect$ /bin/python3 /home/wydl/Projects/src/cones_detect/src/temp_onnx.py
+Input: images tensor_type {
+  elem_type: 1
+  shape {
+    dim {
+      dim_value: 1
+    }
+    dim {
+      dim_value: 3
+    }
+    dim {
+      dim_value: 640
+    }
+    dim {
+      dim_value: 640
+    }
+  }
+}
+
+Output: output0 tensor_type {
+  elem_type: 1
+  shape {
+    dim {
+      dim_value: 1
+    }
+    dim {
+      dim_value: 9
+    }
+    dim {
+      dim_value: 8400
+    }
+  }
+}

@@ -18,23 +18,25 @@
 #include <cstdint>
 #include <sensor_msgs/msg/image.hpp>
 #include "cones_detect/visibility_control.hpp"
-#include <NvInfer.h>
+// #include <NvInfer.h>
 #include <opencv2/opencv.hpp>
-#include "cuda_utils.h"
-#include "logging.h"
+// #include "cuda_utils.h"
+// #include "logging.h"
 #include "utils.h"
+#include <onnxruntime_cxx_api.h>
+#include <rclcpp/rclcpp.hpp>
 
-namespace cones_detect
-{
+// namespace cones_detect
+// {
 
-class CONES_DETECT_PUBLIC ConesDetect
-{
-public:
-  ConesDetect();
-  int64_t foo(int64_t bar) const;
-};
+// class CONES_DETECT_PUBLIC ConesDetect
+// {
+// public:
+//   ConesDetect();
+//   int64_t foo(int64_t bar) const;
+// };
 
-}  // namespace cones_detect
+// }  // namespace cones_detect
 
 
 enum class YOLO_MODEL_VERSION_OUTPUT_STYLE {
@@ -68,59 +70,58 @@ inline std::vector<std::string> split_str(std::string s, std::string delimiter) 
 }
 
 
-struct OptimDim {
-    nvinfer1::Dims4 size;
-    std::string tensor_name;
+// struct OptimDim {
+//     nvinfer1::Dims4 size;
+//     std::string tensor_name;
 
-    bool setFromString(std::string &arg) {
-        // "images:1x3x512x512"
-        std::vector<std::string> v_ = split_str(arg, ":");
-        if (v_.size() != 2) return true;
+//     bool setFromString(std::string &arg) {
+//         // "images:1x3x512x512"
+//         std::vector<std::string> v_ = split_str(arg, ":");
+//         if (v_.size() != 2) return true;
 
-        std::string dims_str = v_.back();
-        std::vector<std::string> v = split_str(dims_str, "x");
+//         std::string dims_str = v_.back();
+//         std::vector<std::string> v = split_str(dims_str, "x");
 
-        size.nbDims = 4;
-        // assuming batch is 1 and channel is 3
-        size.d[0] = 1;
-        size.d[1] = 3;
+//         size.nbDims = 4;
+//         // assuming batch is 1 and channel is 3
+//         size.d[0] = 1;
+//         size.d[1] = 3;
 
-        if (v.size() == 2) {
-            size.d[2] = stoi(v[0]);
-            size.d[3] = stoi(v[1]);
-        } else if (v.size() == 3) {
-            size.d[2] = stoi(v[1]);
-            size.d[3] = stoi(v[2]);
-        } else if (v.size() == 4) {
-            size.d[2] = stoi(v[2]);
-            size.d[3] = stoi(v[3]);
-        } else return true;
+//         if (v.size() == 2) {
+//             size.d[2] = stoi(v[0]);
+//             size.d[3] = stoi(v[1]);
+//         } else if (v.size() == 3) {
+//             size.d[2] = stoi(v[1]);
+//             size.d[3] = stoi(v[2]);
+//         } else if (v.size() == 4) {
+//             size.d[2] = stoi(v[2]);
+//             size.d[3] = stoi(v[3]);
+//         } else return true;
 
-        if (size.d[2] != size.d[3]) std::cerr << "Warning only squared input are currently supported" << std::endl;
+//         if (size.d[2] != size.d[3]) std::cerr << "Warning only squared input are currently supported" << std::endl;
 
-        tensor_name = v_.front();
-        return false;
-    }
-};
+//         tensor_name = v_.front();
+//         return false;
+//     }
+// };
 
 class Yolo {
 public:
     Yolo();
     ~Yolo();
 
-    static int build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile);
+    // static int build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile);
 
-    int init(std::string engine_path);
+    // int init(std::string engine_path);
+    int init(std::string onnx_path);
     std::vector<BBoxInfo> run(cv::Mat left_sl, int orig_image_h, int orig_image_w, float thres);
 
     // sl::Resolution getInferenceSize() {
     //     return sl::Resolution(input_width, input_height);
     // }
-
 private:
-
     cv::Mat left_cv_rgb;
-
+    rclcpp::Logger logger_ = rclcpp::get_logger(""); 
     float nms = 0.4;
 
     // Get input dimension size
@@ -137,16 +138,18 @@ private:
 
 
     float *h_input, *h_output;
-    float *d_input, *d_output;
+    // float *d_input, *d_output;
 
-    nvinfer1::IRuntime* runtime;
-    nvinfer1::ICudaEngine* engine;
-    nvinfer1::IExecutionContext* context;
-    cudaStream_t stream;
+    // nvinfer1::IRuntime* runtime;
+    // nvinfer1::ICudaEngine* engine;
+    // nvinfer1::IExecutionContext* context;
+    // cudaStream_t stream;
 
     bool is_init = false;
 
-
+    Ort::Env env;
+    Ort::SessionOptions session_options;
+    Ort::Session session;
 };
 
 #endif  // CONES_DETECT__CONES_DETECT_HPP_

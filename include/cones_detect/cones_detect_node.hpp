@@ -18,8 +18,8 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
-#include "cuda_utils.h"
-#include "logging.h"
+// #include "cuda_utils.h"
+// #include "logging.h"
 #include "utils.h"
 #include "cones_detect/cones_detect.hpp"
 #include <cv_bridge/cv_bridge.h>
@@ -29,7 +29,7 @@
 
 namespace cones_detect
 {
-using ConesDetectPtr = std::unique_ptr<cones_detect::ConesDetect>;
+// using ConesDetectPtr = std::unique_ptr<cones_detect::ConesDetect>;
 
 class CONES_DETECT_PUBLIC ConesDetectNode : public rclcpp::Node
 {
@@ -37,13 +37,13 @@ public:
   explicit ConesDetectNode(const rclcpp::NodeOptions & options);
 
 private:
-  ConesDetectPtr cones_detect_{nullptr};
+  // ConesDetectPtr cones_detect_{nullptr};
   int64_t param_name_{123};
 
   bool build_engine{false};
   bool show_image{false};
   std::string onnx_path{"model.onnx"};
-  std::string engine_path{"engine.engine"};
+  // std::string engine_path{"engine.engine"};
 
   void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg);
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;

@@ -8,7 +8,7 @@
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
-  <buildtool_depend>autoware_cmake</buildtool_depend>
+  <!-- <buildtool_depend>autoware_cmake</buildtool_depend> -->
 
   <depend>launch_ros</depend>
   <depend>rclcpp</depend>
@@ -16,10 +16,11 @@
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
   <depend>cones_interfaces</depend>
-  
-  <test_depend>ament_cmake_ros</test_depend>
+  <depend>opencv</depend>
+
+  <!-- <test_depend>ament_cmake_ros</test_depend> -->
   <test_depend>ament_lint_auto</test_depend>
-  <test_depend>autoware_lint_common</test_depend>
+  <!-- <test_depend>autoware_lint_common</test_depend> -->
 
   <export>
     <build_type>ament_cmake</build_type>

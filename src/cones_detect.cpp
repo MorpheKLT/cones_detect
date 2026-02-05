@@ -13,29 +13,29 @@
 // limitations under the License.
 
 #include <iostream>
-#include "NvOnnxParser.h"
+// #include "NvOnnxParser.h"
 #include "cones_detect/cones_detect.hpp"
 
-namespace cones_detect
-{
+// namespace cones_detect
+// {
 
-ConesDetect::ConesDetect()
-{
-}
+// ConesDetect::ConesDetect()
+// {
+// }
 
-int64_t ConesDetect::foo(int64_t bar) const
-{
-  std::cout << "Hello World, " << bar << std::endl;
-  return bar;
-}
+// int64_t ConesDetect::foo(int64_t bar) const
+// {
+//   std::cout << "Hello World, " << bar << std::endl;
+//   return bar;
+// }
 
-}  // namespace cones_detect
+// }  // namespace cones_detect
 
 
 
-using namespace nvinfer1;
+// using namespace nvinfer1;
 
-static Logger gLogger;
+// static Logger gLogger;
 
 inline int clamp(int val, int min, int max) {
     if (val <= min) return min;
@@ -137,20 +137,25 @@ std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh, std::vector<B
     return out;
 }
 
-Yolo::Yolo() {
-}
+// Yolo::Yolo(){}
+
+Yolo::Yolo()
+    : env(ORT_LOGGING_LEVEL_WARNING, "YOLO RUNNING ON CPU"),
+    session(nullptr),
+    session_options()
+{}
 
 Yolo::~Yolo() {
     if (is_init) {
 
         // Release stream and buffers
-        cudaStreamDestroy(stream);
-        CUDA_CHECK(cudaFree(d_input));
-        CUDA_CHECK(cudaFree(d_output));
+        // cudaStreamDestroy(stream);
+        // CUDA_CHECK(cudaFree(d_input));
+        // CUDA_CHECK(cudaFree(d_output));
         // Destroy the engine
-        context->destroy();
-        engine->destroy();
-        runtime->destroy();
+        // context->destroy();
+        // engine->destroy();
+        // runtime->destroy();
 
         delete[] h_input;
         delete[] h_output;
@@ -158,189 +163,208 @@ Yolo::~Yolo() {
     is_init = false;
 }
 
-int Yolo::build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile) {
+// int Yolo::build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile) {
 
 
-    std::vector<uint8_t> onnx_file_content;
-    if (readFile(onnx_path, onnx_file_content)) return 1;
+//     std::vector<uint8_t> onnx_file_content;
+//     if (readFile(onnx_path, onnx_file_content)) return 1;
 
-    if ((!onnx_file_content.empty())) {
+//     if ((!onnx_file_content.empty())) {
 
-        ICudaEngine * engine;
-        // Create engine (onnx)
-        std::cout << "Creating engine from onnx model" << std::endl;
+//         ICudaEngine * engine;
+//         // Create engine (onnx)
+//         std::cout << "Creating engine from onnx model" << std::endl;
 
-        gLogger.setReportableSeverity(Severity::kINFO);
-        auto builder = nvinfer1::createInferBuilder(gLogger);
-        if (!builder) {
-            std::cerr << "createInferBuilder failed" << std::endl;
-            return 1;
-        }
+//         gLogger.setReportableSeverity(Severity::kINFO);
+//         auto builder = nvinfer1::createInferBuilder(gLogger);
+//         if (!builder) {
+//             std::cerr << "createInferBuilder failed" << std::endl;
+//             return 1;
+//         }
 
-        auto explicitBatch = 1U << static_cast<uint32_t> (nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-        auto network = builder->createNetworkV2(explicitBatch);
+//         auto explicitBatch = 1U << static_cast<uint32_t> (nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+//         auto network = builder->createNetworkV2(explicitBatch);
 
-        if (!network) {
-            std::cerr << "createNetwork failed" << std::endl;
-            return 1;
-        }
+//         if (!network) {
+//             std::cerr << "createNetwork failed" << std::endl;
+//             return 1;
+//         }
 
-        auto config = builder->createBuilderConfig();
-        if (!config) {
-            std::cerr << "createBuilderConfig failed" << std::endl;
-            return 1;
-        }
+//         auto config = builder->createBuilderConfig();
+//         if (!config) {
+//             std::cerr << "createBuilderConfig failed" << std::endl;
+//             return 1;
+//         }
 
-        ////////// Dynamic dimensions handling : support only 1 size at a time
-        if (!dyn_dim_profile.tensor_name.empty()) {
+//         ////////// Dynamic dimensions handling : support only 1 size at a time
+//         if (!dyn_dim_profile.tensor_name.empty()) {
 
-            IOptimizationProfile* profile = builder->createOptimizationProfile();
+//             IOptimizationProfile* profile = builder->createOptimizationProfile();
 
-            profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kMIN, dyn_dim_profile.size);
-            profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kOPT, dyn_dim_profile.size);
-            profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kMAX, dyn_dim_profile.size);
+//             profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kMIN, dyn_dim_profile.size);
+//             profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kOPT, dyn_dim_profile.size);
+//             profile->setDimensions(dyn_dim_profile.tensor_name.c_str(), OptProfileSelector::kMAX, dyn_dim_profile.size);
 
-            config->addOptimizationProfile(profile);
-            builder->setMaxBatchSize(1);
-        }
+//             config->addOptimizationProfile(profile);
+//             builder->setMaxBatchSize(1);
+//         }
 
-        auto parser = nvonnxparser::createParser(*network, gLogger);
-        if (!parser) {
-            std::cerr << "nvonnxparser::createParser failed" << std::endl;
-            return 1;
-        }
+//         auto parser = nvonnxparser::createParser(*network, gLogger);
+//         if (!parser) {
+//             std::cerr << "nvonnxparser::createParser failed" << std::endl;
+//             return 1;
+//         }
 
-        bool parsed = false;
-        unsigned char *onnx_model_buffer = onnx_file_content.data();
-        size_t onnx_model_buffer_size = onnx_file_content.size() * sizeof (char);
-        parsed = parser->parse(onnx_model_buffer, onnx_model_buffer_size);
+//         bool parsed = false;
+//         unsigned char *onnx_model_buffer = onnx_file_content.data();
+//         size_t onnx_model_buffer_size = onnx_file_content.size() * sizeof (char);
+//         parsed = parser->parse(onnx_model_buffer, onnx_model_buffer_size);
 
-        if (!parsed) {
-            std::cerr << "onnx file parsing failed" << std::endl;
-            return 1;
-        }
+//         if (!parsed) {
+//             std::cerr << "onnx file parsing failed" << std::endl;
+//             return 1;
+//         }
 
-        if (builder->platformHasFastFp16()) {
-            std::cout << "FP16 enabled!" << std::endl;
-            config->setFlag(BuilderFlag::kFP16);
-        }
+//         if (builder->platformHasFastFp16()) {
+//             std::cout << "FP16 enabled!" << std::endl;
+//             config->setFlag(BuilderFlag::kFP16);
+//         }
 
-        //////////////// Actual engine building
+//         //////////////// Actual engine building
 
-        engine = builder->buildEngineWithConfig(*network, *config);
+//         engine = builder->buildEngineWithConfig(*network, *config);
 
-        onnx_file_content.clear();
+//         onnx_file_content.clear();
 
-        // write plan file if it is specified        
-        if (engine == nullptr) return 1;
-        IHostMemory* ptr = engine->serialize();
-        assert(ptr);
-        if (ptr == nullptr) return 1;
+//         // write plan file if it is specified        
+//         if (engine == nullptr) return 1;
+//         IHostMemory* ptr = engine->serialize();
+//         assert(ptr);
+//         if (ptr == nullptr) return 1;
 
-        FILE *fp = fopen(engine_path.c_str(), "wb");
-        fwrite(reinterpret_cast<const char*> (ptr->data()), ptr->size() * sizeof (char), 1, fp);
-        fclose(fp);
+//         FILE *fp = fopen(engine_path.c_str(), "wb");
+//         fwrite(reinterpret_cast<const char*> (ptr->data()), ptr->size() * sizeof (char), 1, fp);
+//         fclose(fp);
 
-        parser->destroy();
-        network->destroy();
-        config->destroy();
-        builder->destroy();
+//         parser->destroy();
+//         network->destroy();
+//         config->destroy();
+//         builder->destroy();
 
-        engine->destroy();
+//         engine->destroy();
 
-        return 0;
-    } else return 1;
-
-
-}
-
-int Yolo::init(std::string engine_name) {
+//         return 0;
+//     } else return 1;
 
 
-    // deserialize the .engine and run inference
-    std::ifstream file(engine_name, std::ios::binary);
-    if (!file.good()) {
-        std::cerr << "read " << engine_name << " error!" << std::endl;
-        return -1;
-    }
-    char *trtModelStream = nullptr;
-    size_t size = 0;
-    file.seekg(0, file.end);
-    size = file.tellg();
-    file.seekg(0, file.beg);
-    trtModelStream = new char[size];
-    if (!trtModelStream) return 1;
-    file.read(trtModelStream, size);
-    file.close();
+// }
 
-    // prepare input data ---------------------------
-    runtime = createInferRuntime(gLogger);
-    if (runtime == nullptr) return 1;
-    engine = runtime->deserializeCudaEngine(trtModelStream, size);
-    if (engine == nullptr) return 1;
-    context = engine->createExecutionContext();
-    if (context == nullptr) return 1;
-
-    delete[] trtModelStream;
-    if (engine->getNbBindings() != 2) return 1;
+// int Yolo::init(std::string engine_name) {
 
 
-    const int bindings = engine->getNbBindings();
-    for (int i = 0; i < bindings; i++) {
-        if (engine->bindingIsInput(i)) {
-            input_binding_name = engine->getBindingName(i);
-            Dims bind_dim = engine->getBindingDimensions(i);
-            input_width = bind_dim.d[3];
-            input_height = bind_dim.d[2];
-            inputIndex = i;
-            std::cout << "Inference size : " << input_height << "x" << input_width << std::endl;
-        }//if (engine->getTensorIOMode(engine->getBindingName(i)) == TensorIOMode::kOUTPUT) 
-        else {
-            output_name = engine->getBindingName(i);
-            // fill size, allocation must be done externally
-            outputIndex = i;
-            Dims bind_dim = engine->getBindingDimensions(i);
-            size_t batch = bind_dim.d[0];
-            if (batch > batch_size) {
-                std::cout << "batch > 1 not supported" << std::endl;
-                return 1;
-            }
-            size_t dim1 = bind_dim.d[1];
-            size_t dim2 = bind_dim.d[2];
+//     // deserialize the .engine and run inference
+//     std::ifstream file(engine_name, std::ios::binary);
+//     if (!file.good()) {
+//         std::cerr << "read " << engine_name << " error!" << std::endl;
+//         return -1;
+//     }
+//     char *trtModelStream = nullptr;
+//     size_t size = 0;
+//     file.seekg(0, file.end);
+//     size = file.tellg();
+//     file.seekg(0, file.beg);
+//     trtModelStream = new char[size];
+//     if (!trtModelStream) return 1;
+//     file.read(trtModelStream, size);
+//     file.close();
 
-            if (dim1 > dim2) {
-                // Yolov6 1x8400x85 //  85=5+80=cxcy+cwch+obj_conf+cls_conf
-                out_dim = dim1;
-                out_box_struct_number = 5;
-                out_class_number = dim2 - out_box_struct_number;
-                yolo_model_version = YOLO_MODEL_VERSION_OUTPUT_STYLE::YOLOV6;
-                std::cout << "YOLOV6 format" << std::endl;
-            } else {
-                // Yolov8 1x84x8400
-                out_dim = dim2;
-                out_box_struct_number = 4;
-                out_class_number = dim1 - out_box_struct_number;
-                yolo_model_version = YOLO_MODEL_VERSION_OUTPUT_STYLE::YOLOV8_V5;
-                std::cout << "YOLOV8/YOLOV5 format" << std::endl;
-            }
-        }
-    }
+//     // prepare input data ---------------------------
+//     runtime = createInferRuntime(gLogger);
+//     if (runtime == nullptr) return 1;
+//     engine = runtime->deserializeCudaEngine(trtModelStream, size);
+//     if (engine == nullptr) return 1;
+//     context = engine->createExecutionContext();
+//     if (context == nullptr) return 1;
+
+//     delete[] trtModelStream;
+//     if (engine->getNbBindings() != 2) return 1;
+
+
+//     const int bindings = engine->getNbBindings();
+//     for (int i = 0; i < bindings; i++) {
+//         if (engine->bindingIsInput(i)) {
+//             input_binding_name = engine->getBindingName(i);
+//             Dims bind_dim = engine->getBindingDimensions(i);
+//             input_width = bind_dim.d[3];
+//             input_height = bind_dim.d[2];
+//             inputIndex = i;
+//             std::cout << "Inference size : " << input_height << "x" << input_width << std::endl;
+//         }//if (engine->getTensorIOMode(engine->getBindingName(i)) == TensorIOMode::kOUTPUT) 
+//         else {
+//             output_name = engine->getBindingName(i);
+//             // fill size, allocation must be done externally
+//             outputIndex = i;
+//             Dims bind_dim = engine->getBindingDimensions(i);
+//             size_t batch = bind_dim.d[0];
+//             if (batch > batch_size) {
+//                 std::cout << "batch > 1 not supported" << std::endl;
+//                 return 1;
+//             }
+//             size_t dim1 = bind_dim.d[1];
+//             size_t dim2 = bind_dim.d[2];
+
+//             if (dim1 > dim2) {
+//                 // Yolov6 1x8400x85 //  85=5+80=cxcy+cwch+obj_conf+cls_conf
+//                 out_dim = dim1;
+//                 out_box_struct_number = 5;
+//                 out_class_number = dim2 - out_box_struct_number;
+//                 yolo_model_version = YOLO_MODEL_VERSION_OUTPUT_STYLE::YOLOV6;
+//                 std::cout << "YOLOV6 format" << std::endl;
+//             } else {
+//                 // Yolov8 1x84x8400
+//                 out_dim = dim2;
+//                 out_box_struct_number = 4;
+//                 out_class_number = dim1 - out_box_struct_number;
+//                 yolo_model_version = YOLO_MODEL_VERSION_OUTPUT_STYLE::YOLOV8_V5;
+//                 std::cout << "YOLOV8/YOLOV5 format" << std::endl;
+//             }
+//         }
+//     }
+//     output_size = out_dim * (out_class_number + out_box_struct_number);
+//     h_input = new float[batch_size * 3 * input_height * input_width];
+//     h_output = new float[batch_size * output_size];
+//     // In order to bind the buffers, we need to know the names of the input and output tensors.
+//     // Note that indices are guaranteed to be less than IEngine::getNbBindings()
+//     assert(inputIndex == 0);
+//     assert(outputIndex == 1);
+//     // Create GPU buffers on device
+//     // CUDA_CHECK(cudaMalloc(&d_input, batch_size * 3 * input_height * input_width * sizeof (float)));
+//     CUDA_CHECK(cudaMalloc((void**)&d_input, batch_size * 3 * input_height * input_width * sizeof(float)));
+//     // CUDA_CHECK(cudaMalloc(&d_output, batch_size * output_size * sizeof (float)));
+//     CUDA_CHECK(cudaMalloc((void**)&d_output, batch_size * output_size * sizeof(float)));
+//     // Create stream
+//     CUDA_CHECK(cudaStreamCreate(&stream));
+
+//     if (batch_size != 1) return 1; // This sample only support batch 1 for now
+
+//     is_init = true;
+//     return 0;
+// }
+
+int Yolo::init(std::string onnx_path) {
+    yolo_model_version = YOLO_MODEL_VERSION_OUTPUT_STYLE::YOLOV8_V5;
+
+    input_width = 640;
+    input_height = 640;
+    out_dim = 8400; 
+    out_class_number = 5;  
+    out_box_struct_number = 4;
     output_size = out_dim * (out_class_number + out_box_struct_number);
-    h_input = new float[batch_size * 3 * input_height * input_width];
-    h_output = new float[batch_size * output_size];
-    // In order to bind the buffers, we need to know the names of the input and output tensors.
-    // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-    assert(inputIndex == 0);
-    assert(outputIndex == 1);
-    // Create GPU buffers on device
-    // CUDA_CHECK(cudaMalloc(&d_input, batch_size * 3 * input_height * input_width * sizeof (float)));
-    CUDA_CHECK(cudaMalloc((void**)&d_input, batch_size * 3 * input_height * input_width * sizeof(float)));
-    // CUDA_CHECK(cudaMalloc(&d_output, batch_size * output_size * sizeof (float)));
-    CUDA_CHECK(cudaMalloc((void**)&d_output, batch_size * output_size * sizeof(float)));
-    // Create stream
-    CUDA_CHECK(cudaStreamCreate(&stream));
 
-    if (batch_size != 1) return 1; // This sample only support batch 1 for now
+    session_options.SetIntraOpNumThreads(1);
+    session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+
+    session = Ort::Session(env, onnx_path.c_str(), session_options);
 
     is_init = true;
     return 0;
@@ -348,14 +372,20 @@ int Yolo::init(std::string engine_name) {
 
 std::vector<BBoxInfo> Yolo::run(cv::Mat left_sl, int orig_image_h, int orig_image_w, float thres) {
     std::vector<BBoxInfo> binfo;
-
+    RCLCPP_INFO(logger_, "YOLO run() started.");
     size_t frame_s = input_height * input_width;
 
     /////// Preparing inference
     cv::Mat left_cv_rgba = left_sl;
     cv::cvtColor(left_cv_rgba, left_cv_rgb, cv::COLOR_BGRA2BGR);
-    if (left_cv_rgb.empty()) return binfo;
+    RCLCPP_INFO(logger_, "Converted image to BGR.");
+    if (left_cv_rgb.empty()) {
+        RCLCPP_WARN(logger_, "Input image is empty!");
+        return binfo;
+    }
     cv::Mat pr_img = preprocess_img(left_cv_rgb, input_width, input_height); // letterbox BGR to RGB
+    RCLCPP_INFO(logger_, "Preprocessed image.");
+
     int i = 0;
     int batch = 0;
     for (std::size_t row = 0; row < input_height; ++row) {
@@ -368,22 +398,51 @@ std::vector<BBoxInfo> Yolo::run(cv::Mat left_sl, int orig_image_h, int orig_imag
             ++i;
         }
     }
-
+    RCLCPP_INFO(logger_, "Filled input tensor.");
     /////// INFERENCE
     // DMA input batch data to device, infer on the batch asynchronously, and DMA output back to host
-    CUDA_CHECK(cudaMemcpyAsync(d_input, h_input, batch_size * 3 * frame_s * sizeof (float), cudaMemcpyHostToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_input, h_input, batch_size * 3 * frame_s * sizeof (float), cudaMemcpyHostToDevice, stream));
 
-    std::vector<void*> d_buffers_nvinfer(2);
-    d_buffers_nvinfer[inputIndex] = d_input;
-    d_buffers_nvinfer[outputIndex] = d_output;
-    context->enqueueV2(&d_buffers_nvinfer[0], stream, nullptr);
+    // std::vector<void*> d_buffers_nvinfer(2);
+    // d_buffers_nvinfer[inputIndex] = d_input;
+    // d_buffers_nvinfer[outputIndex] = d_output;
+    // context->enqueueV2(&d_buffers_nvinfer[0], stream, nullptr);
 
-    CUDA_CHECK(cudaMemcpyAsync(h_output, d_output, batch_size * output_size * sizeof (float), cudaMemcpyDeviceToHost, stream));
-    cudaStreamSynchronize(stream);
+    // CUDA_CHECK(cudaMemcpyAsync(h_output, d_output, batch_size * output_size * sizeof (float), cudaMemcpyDeviceToHost, stream));
+    // cudaStreamSynchronize(stream);
 
+    std::vector<int64_t> input_shape = {
+        static_cast<int64_t>(batch_size),
+        3,
+        static_cast<int64_t>(input_height),
+        static_cast<int64_t>(input_width)
+    };
+    RCLCPP_INFO(logger_, "Input shape prepared: [%ld, %ld, %ld, %ld]", 
+                input_shape[0], input_shape[1], input_shape[2], input_shape[3]);
+
+    Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(
+        OrtDeviceAllocator, OrtMemTypeCPU);
+    RCLCPP_INFO(logger_, "MemoryInfo created.");
+    Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+        memory_info, h_input, batch_size * 3 * frame_s,
+        input_shape.data(), input_shape.size()
+    );
+    RCLCPP_INFO(logger_, "Input tensor created.");
+
+    const char* input_names[] = {"images"};
+    const char* output_names[] = {"output0"};
+    auto output_tensors = session.Run(
+        Ort::RunOptions{nullptr},
+        input_names, &input_tensor, 1,
+        output_names, 1
+    );
+    RCLCPP_INFO(logger_, "Inference finished.");
+    float* output_data = output_tensors[0].GetTensorMutableData<float>();
+    std::memcpy(h_output, output_data, output_size * sizeof(float));
+    RCLCPP_INFO(logger_, "Copied output tensor to h_output.");
 
     /////// Extraction
-
+    RCLCPP_INFO(logger_, "Start postprocessing and NMS.");
     float scalingFactor = std::min(static_cast<float> (input_width) / orig_image_w, static_cast<float> (input_height) / orig_image_h);
     float xOffset = (input_width - scalingFactor * orig_image_w) * 0.5f;
     float yOffset = (input_height - scalingFactor * orig_image_h) * 0.5f;
@@ -526,7 +585,7 @@ std::vector<BBoxInfo> Yolo::run(cv::Mat left_sl, int orig_image_h, int orig_imag
 
     /// NMS
     binfo = nonMaximumSuppression(nms, binfo);
-
+    RCLCPP_INFO(logger_, "NMS done. Number of boxes: %ld", binfo.size());
     return binfo;
 }
 

@@ -32,13 +32,13 @@ auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
 ConesDetectNode::ConesDetectNode(const rclcpp::NodeOptions & options)
 :  Node("cones_detect", options)
 {
-  cones_detect_ = std::make_unique<cones_detect::ConesDetect>();
+  // cones_detect_ = std::make_unique<cones_detect::ConesDetect>();
   param_name_ = this->declare_parameter("param_name", 456);
 
-  build_engine = this->declare_parameter("build_engine", false);
+  // build_engine = this->declare_parameter("build_engine", false);
   show_image = this->declare_parameter("show_image", false);
   onnx_path = this->declare_parameter("model_path", "model.onnx");
-  engine_path = this->declare_parameter("engine_path", "engine.engine");
+  // engine_path = this->declare_parameter("engine_path", "engine.engine");
 
 
   image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
@@ -50,24 +50,30 @@ ConesDetectNode::ConesDetectNode(const rclcpp::NodeOptions & options)
   bboxes_pub_ = this->create_publisher<cones_interfaces::msg::Cones>("output_bboxes", custom_qos);
   
   if (show_image){
-  image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("output_image", custom_qos);
+    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("output_image", custom_qos);
   }
   
-  setenv("CUDA_MODULE_LOADING", "LAZY", 1);
+  // setenv("CUDA_MODULE_LOADING", "LAZY", 1);
 
 
-  if (!std::filesystem::exists(engine_path))
-  {
-    build_engine = true;
-  }
+  // if (!std::filesystem::exists(engine_path))
+  // {
+  //   build_engine = true;
+  // }
 
-  if (build_engine){
-    OptimDim dyn_dim_profile;
-    Yolo::build_engine(onnx_path, engine_path, dyn_dim_profile);
-    std::cout << "Build finished" << std::endl;
-  }
+  // if (build_engine){
+  //   OptimDim dyn_dim_profile;
+  //   Yolo::build_engine(onnx_path, engine_path, dyn_dim_profile);
+  //   std::cout << "Build finished" << std::endl;
+  // }
 
-  if (detector.init(engine_path)) {
+  // if (detector.init(engine_path)) {
+  //   std::cerr << "Detector init failed" << std::endl;
+  // }
+  // else {
+  //   std::cout << "Detector init success" << std::endl;
+  // }
+  if (detector.init(onnx_path)) {
     std::cerr << "Detector init failed" << std::endl;
   }
   else {
@@ -80,10 +86,10 @@ void ConesDetectNode::imageCallback(const sensor_msgs::msg::Image::SharedPtr msg
 {
   cv::Mat frame_cv;
   frame_cv = cv_bridge::toCvCopy(msg, "bgr8")->image;
-
+  std::cout << "CV converted!" << std::endl;
   auto detections = detector.run(frame_cv, frame_cv.rows, frame_cv.cols, CONF_THRESH);
 
-
+  std::cout << "Cones Detected!" << std::endl;
 
   // Displaying 'raw' objects
   if (show_image){
@@ -110,6 +116,7 @@ void ConesDetectNode::imageCallback(const sensor_msgs::msg::Image::SharedPtr msg
   }
 
   bboxes_pub_->publish(cones);
+  std::cout << "Published" << std::endl;
 }
 
 

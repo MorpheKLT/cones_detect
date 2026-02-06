@@ -27,7 +27,8 @@ cv::Rect get_rect(BBox box) {
 
 namespace cones_detect
 {
-auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
+// auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
+auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1));
 
 ConesDetectNode::ConesDetectNode(const rclcpp::NodeOptions & options)
 :  Node("cones_detect", options)

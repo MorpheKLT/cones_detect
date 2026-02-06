@@ -360,8 +360,9 @@ int Yolo::init(std::string onnx_path) {
     out_class_number = 5;  
     out_box_struct_number = 4;
     output_size = out_dim * (out_class_number + out_box_struct_number);
-
-    session_options.SetIntraOpNumThreads(1);
+    h_input = new float[batch_size * 3 * input_height * input_width];
+    h_output = new float[batch_size * output_size];
+    session_options.SetIntraOpNumThreads(6);
     session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
     session = Ort::Session(env, onnx_path.c_str(), session_options);
@@ -384,7 +385,12 @@ std::vector<BBoxInfo> Yolo::run(cv::Mat left_sl, int orig_image_h, int orig_imag
         return binfo;
     }
     cv::Mat pr_img = preprocess_img(left_cv_rgb, input_width, input_height); // letterbox BGR to RGB
-    RCLCPP_INFO(logger_, "Preprocessed image.");
+    if (pr_img.empty()) {
+        RCLCPP_ERROR(logger_, "Preprocessed image is empty!");
+        return binfo;
+    }
+    RCLCPP_INFO(logger_, "Preprocessed image size: %dx%d, channels: %d",
+                pr_img.cols, pr_img.rows, pr_img.channels());
 
     int i = 0;
     int batch = 0;
